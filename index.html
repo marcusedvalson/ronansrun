@@ -210,7 +210,17 @@ grid-row-gap: 0px;
             text-align: center;
         }
 
-        #portal p {
+        #portal2 {
+            position: absolute;
+            left:30px;
+            bottom: 30px;
+            color:#FFFFFF;
+            font-size: 1.2em;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        #portal p, #portal2 p {
             margin: 0;
         }
 
@@ -243,8 +253,14 @@ grid-row-gap: 0px;
 
             #portal {
                 bottom:80px;
-                right:50%;
-                transform: translateX(50%);
+                right:20px;
+                
+            }
+
+            #portal2 {
+                bottom:80px;
+                left:20px;
+              
             }
 
             #no-mobile {
@@ -287,6 +303,8 @@ grid-row-gap: 0px;
         <div id="music-toggle-text" style="position: absolute; top: 10px; left: 10px; color: #000000; xfont-size: 1.5em; z-index: 5;">Press (S) to toggle music</div>
     </div>
     <div id="no-mobile">OOPS! This doesn't work on mobile devices. Please use a desktop computer to play this game</div>
+    <div id="portal2"><a href="http://metaverse.delta.vercel.app" target="_blank"><img src="assets/portal2.gif" alt="Portal"><p>Enter the Metaverse</p></a></div>
+
     <div id="portal"><a href="http://portal.pieter.com" target="_blank"><img src="assets/portal.gif" alt="Portal"><p>Enter the Vibeverse</p></a></div>
 
     <!-- Add a modal for game information -->
