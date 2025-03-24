@@ -1,0 +1,1771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ronan's Run</title>
+    <style>
+        @font-face {
+            font-family: 'GameFont';
+            src: url('fonts/EnterCommand-Bold.woff2') format('truetype');
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #261930;
+            font-family: 'GameFont', monospace;
+            overflow: hidden;
+            background-image: url('assets/extension-dark.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        #main-logo {
+            position: absolute;
+            top: 30px;
+            left: 20px;
+            color: #000000;
+            font-size: 1.5em;
+        }
+
+        #credit {
+            position: absolute;
+            top:30px;
+            right:30px;
+            color:#fff;
+            font-size: 1.2em;
+            text-align: right;
+        }
+
+        #credit p {
+            margin: 0;
+        }
+
+        #no-mobile {
+            position: absolute;
+            left:30px;
+            bottom:30px;
+            color:#FFFFFF;
+            font-size: 1.2em;
+            max-width: 400px;
+            visibility: hidden;
+        }
+
+        
+
+        a:link, a:visited {
+            color:#00FFFF;
+            text-decoration: none;
+        }
+
+        a:hover {
+            color:#FCDD4F;
+            text-decoration: underline;
+        }
+        
+        .game-container {
+            position: relative;
+            width: 80vw;
+            height: 45vw; /* 16:9 ratio */
+            max-width: 960px;
+            max-height: 540px;
+            background-color: #95c0c0;
+            overflow: hidden;
+        }
+        
+        #game-canvas {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        
+        .start-screen, .instructions-screen, .game-over-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            z-index: 10;
+        }
+        
+        .start-screen {
+            background-image: url('assets/cover.gif');
+        }
+        
+        .instructions-screen {
+            background-image: url('assets/instructions.gif' );
+        }
+
+        
+        .hidden {
+            display: none;
+        }
+        
+        #distance-counter {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: #000000;
+            font-size: 1.5em;
+            z-index: 5;
+        }
+        
+        /* Add CSS for animated player sprite */
+        #player-sprite {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            z-index: 2;
+            pointer-events: none;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+        }
+        
+        /* Add styles for obstacle sprites */
+        .obstacle-sprite {
+            position: absolute;
+            pointer-events: none;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+            z-index: 1;
+        }
+        
+        /* Add a class for hidden obstacles */
+        .hidden-obstacle {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .game-over-screen {
+            background-image: url('assets/gameover.gif');
+           text-align: center;
+           
+            text-align: center;
+        }
+        
+        .game-over-stats {
+            color: black;
+            position: absolute;
+            top: 60%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: grid;
+grid-template-columns: repeat(2, 1fr);
+grid-template-rows: repeat(2, 1fr);
+grid-column-gap: 0px;
+grid-row-gap: 0px;
+            grid-template-rows: auto auto;
+            height:fit-content;
+            line-height: auto;
+        }
+
+        #final-distance, #final-kills {
+            font-size: 34px;
+            text-transform: uppercase;
+            grid-column: 1 / 2;
+            text-align: center;
+        }
+
+        #final-distance {
+            color:black;
+            grid-area: distance;
+            grid-area: 1 / 1 / 2 / 2;
+        }
+
+        #final-kills {
+            color:black;
+            grid-area: kills;
+            grid-area: 1 / 2 / 2 / 3;
+        }
+
+        #final-score {
+            color:black;
+            font-size: 88px;
+            grid-area: score;
+            grid-area: 2 / 1 / 3 / 3;
+            text-align: center;
+        }
+
+        #music-toggle-text {font-size: 1.5em;}
+
+        #portal {
+            position: absolute;
+            right:30px;
+            bottom: 30px;
+            color:#FFFFFF;
+            font-size: 1.2em;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        #portal p {
+            margin: 0;
+        }
+
+        @media only screen and (max-width: 768px) {
+            /* Mobile-specific styles */
+            body {
+                background-color: #333;
+            }
+            .game-container {
+                width: 100vw;
+                height: 56.25vw; /* Maintain 16:9 ratio */
+                max-width: none;
+                max-height: none;
+                position: relative;
+            }
+            #distance-counter, #music-toggle-text {
+                font-size: 1.2em;
+            }
+            #main-logo, #credit, #no-mobile {
+                font-size: 1em;
+            }
+
+            #final-distance, #final-kills {
+                font-size: 18px;
+            }
+
+            #final-score {
+                font-size: 24px;
+            }
+
+            #portal {
+                bottom:80px;
+                right:50%;
+                transform: translateX(50%);
+            }
+
+            #no-mobile {
+                visibility: visible;
+                top:130px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="main-logo"><img src="assets/main-logo.png" alt="Main Logo"></div>
+    <div id="credit">Created by <a href="https://x.com/sayhellomarcus" target="_blank">Marcus</a> using <a href="https://claude.ai/" target="_blank">Claude</a> and <a href="https://cursor.sh/" target="_blank">Cursor</a><p><a id="learn-more" href="#">Learn more about this game</a></p></div>
+    <div class="game-container">
+        <canvas id="game-canvas"></canvas>
+        
+        <!-- Add obstacle container -->
+        <div id="obstacle-container"></div>
+        
+        <!-- Add player sprite element -->
+        <img id="player-sprite" class="hidden" src="" alt="Player">
+        
+        <div id="start-screen" class="start-screen"></div>
+        
+        <div id="instructions-screen" class="instructions-screen hidden"></div>
+        
+        <div id="game-over-screen" class="game-over-screen hidden">
+            <div id="music-toggle-text" style="position: absolute; top: 10px; left: 10px; color: #000000; xfont-size: 1.5em; z-index: 5;">Press (S) to toggle music</div>
+
+            <div class="game-over-stats">
+            <div id="final-distance">Distance: 0</div>
+                <div id="final-kills">Kills: 0</div> 
+                <div id="final-score">Score: 0 </div>
+        </div>
+        
+        </div>
+        
+        <div id="distance-counter">Distance: 0 | Kills: 0</div>
+
+        <!-- Add a new div for the music toggle text -->
+        <div id="music-toggle-text" style="position: absolute; top: 10px; left: 10px; color: #000000; xfont-size: 1.5em; z-index: 5;">Press (S) to toggle music</div>
+    </div>
+    <div id="no-mobile">OOPS! This doesn't work on mobile devices. Please use a desktop computer to play this game</div>
+    <div id="portal"><a href="http://portal.pieter.com" target="_blank"><img src="assets/portal.gif" alt="Portal"><p>Enter the Vibeverse</p></a></div>
+
+    <!-- Add a modal for game information -->
+    <div id="game-info-modal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); color: white; display: none; justify-content: center; align-items: center; z-index: 20; font-size:1.5em; text-align: left;">
+        <div style="background-color: #333; padding: 20px; border-radius: 10px; max-width: 600px; text-align: center;">
+            <h2>ABOUT RONAN'S RUN</h2>
+            <p>I always loved pixel based side-scrollers. I was inspired by the game <a href="https://canabalt.com/" target="_blank">Canabalt</a>, and decided to try to vibe code a similar game using just vanilla html, javascript, and css. The game is a little laggy, yes, but I am happy with the outcome. This game was coded start to finish in a weekend.<br/>Thank you to <a href="https://hugues-laborde.itch.io/" target="_blank">Hugues Laborde</a> for the sprites, and to <a href="https://claude.ai/" target="_blank">Claude</a> and <a href="https://cursor.sh/" target="_blank">Cursor</a> for helping me code this game.<p><a href="https://x.com/sayhellomarcus" target="_blank">Follow me on X</a></p></p>
+            <button id="close-modal" style="margin-top: 20px; padding: 10px 20px; background-color: #555; color: white; border: none; border-radius: 5px; cursor: pointer;">Close</button>
+        </div>
+    </div>
+
+    <script>
+        // Game constants
+        const GAME_WIDTH = 1200;
+        const GAME_HEIGHT = 675;
+        const PLAYER_WIDTH = 40;
+        const PLAYER_HEIGHT = 40;
+        const GRAVITY = 0.6;
+        const JUMP_FORCE = -15;
+        const PROJECTILE_SPEED = 10;
+        const PLATFORM_HEIGHT = 26;
+        const MAX_SCROLL_SPEED = 8; // Maximum scroll speed
+        const OBSTACLE_FREQUENCY = 0.6; // Overall obstacle frequency
+        const OBSTACLE_MIN_EDGE_DISTANCE = 100; // Minimum distance from platform edge
+        const OBSTACLE_PURPLE_CHANCE = 0.25; // Chance of purple obstacle
+        const OBSTACLE_RED_CHANCE = 0.25; // Chance of red obstacle
+        const OBSTACLE_GREEN_CHANCE = 0.25; // Chance of green obstacle
+        const OBSTACLE_BLUE_CHANCE = 0.25; // Chance of blue obstacle
+        const OBSTACLE_INITIAL_DISTANCE = 1000; // How far into the game obstacles start appearing
+        const OBSTACLE_INITIAL_SPACING = 300; // Spacing between initial obstacles
+        
+        // Blue obstacle configuration
+        const BLUE_OBSTACLE_HITBOX_RATIO = 0.7; // Blue obstacle hitbox is 30% of visual width
+        const BLUE_OBSTACLE_MIN_WIDTH = 100; // Minimum width for blue obstacles
+        const BLUE_OBSTACLE_MAX_WIDTH = 120; // Maximum width for blue obstacles
+        
+        // Purple obstacle configuration
+        const PURPLE_OBSTACLE_SPEED_DECREASE = 0.3; // Reduces speed by 30% (0.3 = 30%)
+        
+        // Scoring configuration
+        const DISTANCE_SCORE_MULTIPLIER = 1.2; // Points per distance unit
+        const GREEN_OBSTACLE_SCORE = 110; // Points per green obstacle shot
+        
+        // Terrain configuration
+        const MAX_TERRAIN_AHEAD = 8; // Maximum number of terrain pieces to keep ahead
+        const MIN_JUMP_DISTANCE = 100; // Minimum distance between platforms for jumps
+        const MAX_JUMP_DISTANCE = 180; // Maximum distance for jumps (will be adjusted based on speed)
+        
+        // Visual states for Hawkeye
+        const HAWKEYE_DEFAULT_COLOR = "#000000"; // Default color (black)
+        const HAWKEYE_JUMPING_COLOR = "#444444"; // Color when jumping (dark gray)
+        const HAWKEYE_PURPLE_HIT_COLOR = "#cccccc"; // Color when hit by purple obstacle (light gray)
+        
+        // Speed configuration
+        const DEFAULT_SPEED = 3.0;           // Starting speed
+        const MAX_SPEED = 8.0;               // Maximum possible speed
+        const MIN_SPEED = 2.0;               // Minimum speed (after purple hit)
+        const SPEED_INCREASE_RATE = 0.002;  // Speed increases by this amount per frame
+        
+        // Add this with the other constants
+        const DISTANCE_INCREASE_RATE = 0.05;  // Multiplier for distance accumulation
+        
+        // Near the top with other constants
+        const OBSTACLE_DARK_BLUE = "#000066";  // Make sure this matches the color being used to create obstacles
+        
+        // Add sprite state duration constants near the top with other constants
+        const PLAYER_JUMPING_DURATION = 0;  // 0 means stay in this state until landing
+        const PLAYER_PURPLE_HIT_DURATION = 800;  // Duration in milliseconds
+        const PLAYER_FIRING_DURATION = 800;  // Duration in milliseconds
+        const PLAYER_FALLING_DURATION = 0;  // 0 means stay in this state until landing
+        
+        // Add this with the other sprite state duration constants
+        const SPEED_SPRINT_THRESHOLD = 3.0;  // Speed at which sprint animation triggers
+        
+        // Add this with the other player sprite constants
+        const PLAYER_SPRINT_DURATION = 0;  // 0 means stay in this state as long as speed is above threshold
+        
+        // Update terrain configuration constants
+        const MIDDLE_GROUND_HEIGHT = 102; // New constant for middle ground height
+        
+        // Add parallax effect constants
+        const BACKGROUND_PARALLAX_RATE = 0.5; // Background moves at 50% of the game speed
+        const DISTANT_BACKGROUND_PARALLAX_RATE = 0.2; // Distant background moves at 20% of the game speed
+        
+        // Add these with the other constants
+        const MIDDLE_GROUND_SPRITES = [
+            "assets/middleground-01.png",
+            "assets/middleground-02.png",
+            "assets/middleground-03.png"
+        ]; // Array of middle ground sprites to randomize from
+        
+        const BACKGROUND_SPRITES = [
+            "assets/background-front-01.png",
+            "assets/background-front-02.png",
+            "assets/background-front-04.png",
+            "assets/background-front-03.png"
+        ]; // Array of background sprites to randomize from
+        
+        const DISTANT_BACKGROUND_SPRITES = [
+            "assets/background-01.jpg",
+            "assets/background-02.jpg",
+            "assets/background-03.jpg",
+            "assets/background-04.jpg"
+        ]; // Array of distant background sprites to randomize from
+        
+        // Add constants for destroy animation durations
+        const GREEN_DESTROY_DURATION = 800; // Duration in milliseconds for green obstacle destroy animation
+        const PURPLE_DESTROY_DURATION = 800; // Duration in milliseconds for purple obstacle destroy animation
+        
+        // Add new constants for audio and game over delay
+        const BACKGROUND_MUSIC_VOLUME = 0.3; // Volume level (0.0 to 1.0)
+        const GAME_OVER_DELAY = 500; // Delay in milliseconds before space bar is enabled
+        
+        // Game variables
+        let canvas, ctx;
+        let gameActive = false;
+        let gameState = "start"; // start, instructions, playing, gameOver
+        let canRestartGame = false; // Controls whether space bar can restart the game
+        let player = {
+            x: 100,
+            y: 0,
+            width: PLAYER_WIDTH,
+            height: PLAYER_HEIGHT,
+            velocityY: 0,
+            jumping: false,
+            falling: false,
+            onGround: false,
+            sprinting: false, // NEW: Track if player is sprinting
+            color: HAWKEYE_DEFAULT_COLOR, // Current color state
+            purpleHitTimer: 0, // Timer for purple hit visual effect only
+            firingTimer: 0 // Timer for firing animation
+        };
+        let projectiles = [];
+        let platforms = [];
+        let obstacles = [];
+        let distance = 0;
+        let baseSpeed = DEFAULT_SPEED; // Start at DEFAULT_SPEED - THIS IS THE ONLY SPEED VARIABLE WE'LL USE
+        let lastObstacleHitTime = 0; // Track when the last obstacle hit occurred
+        let greenObstaclesShot = 0; // Counter for green obstacles shot
+        let backgroundMusic = null;
+        let isMusicPlaying = true;
+        
+        // DOM elements
+        const startScreen = document.getElementById("start-screen");
+        const gameOverScreen = document.getElementById("game-over-screen");
+        const distanceCounter = document.getElementById("distance-counter");
+        const finalDistanceDisplay = document.getElementById("final-distance");
+        
+        // Update the SPRITES object to include multiple background options
+        const SPRITES = {
+            // Background layers
+            distantBackground: [], // Will hold multiple distant background sprites
+            background: [], // Will hold multiple background sprites
+            
+            // Terrain
+            platform: "assets/ground-solid.png", // Ground sprite
+            platformMiddle: [], // Will hold multiple middle ground sprites
+            platformExtension: "assets/extension-dark.png", // Extension sprite
+            
+            // Player
+            player: "assets/run.gif", // Default running sprite
+            playerJumping: "assets/jump-up.gif", // Jumping sprite
+            playerPurpleHit: "assets/collide.gif", // Purple hit sprite
+            playerFiring: "assets/fire.gif", // Firing projectile sprite
+            playerFalling: "assets/fall.gif", // Falling sprite
+            playerSprinting: "assets/sprint.gif", // Sprinting sprite for high speed
+            
+            // Obstacles
+            obstacleRed: "assets/spikes.gif", // Will be: "images/obstacle_red.png"
+            obstacleGreen: ["assets/enemy02.gif", "assets/enemy01.gif"], // Multiple green obstacle sprites
+            obstacleBlue: "assets/lava.gif", // Will be: "images/obstacle_blue.png"
+            obstaclePurple: "assets/torch-wide.gif", // Will be: "images/obstacle_purple.png"
+            
+            // Destroy animation for green obstacles
+            obstacleGreenDestroy: "assets/Enemy01-Destroy2.gif",
+            
+            // Destroy animation for purple obstacles
+            obstaclePurpleDestroy: "assets/torch-destroy.gif",
+            
+            // Projectile
+            projectile: null // Will be: "images/projectile.png"
+        };
+        
+        // Add this after the SPRITES declaration
+        const animatedSprites = {};
+        const spriteContainer = document.createElement('div');
+        
+        // Add background tracking variables
+        let backgroundElements = []; // Track background elements for parallax
+        let distantBackgroundElements = []; // Track distant background elements for parallax
+        
+        // Update the preloadSprites function to handle multiple sprite options
+        function preloadSprites() {
+            // Create a hidden container for the animated GIFs
+            spriteContainer.style.position = 'absolute';
+            spriteContainer.style.opacity = '0';
+            spriteContainer.style.pointerEvents = 'none';
+            spriteContainer.style.width = '0';
+            spriteContainer.style.height = '0';
+            spriteContainer.style.overflow = 'hidden';
+            document.body.appendChild(spriteContainer);
+            
+            // Helper function to preload a sprite
+            function preloadSprite(key, path) {
+                if (path) {
+                    // Create an img element for the sprite
+                    const img = document.createElement('img');
+                    img.src = path;
+                    img.id = `sprite-${key}`;
+                    
+                    // Add error handling
+                    img.onerror = function() {
+                        animatedSprites[key] = null; // Set to null so we can check later
+                    };
+                    
+                    // Add to DOM to ensure animation works
+                    spriteContainer.appendChild(img);
+                    
+                    // Store reference in animatedSprites for access
+                    animatedSprites[key] = img;
+                    
+                    console.log(`Loading sprite: ${key} from ${path}`);
+                    return path; // Return the path, not the img element
+                }
+                return null;
+            }
+            
+            // Helper function to preload multiple sprites
+            function preloadMultipleSprites(key, paths) {
+                if (paths && paths.length > 0) {
+                    const sprites = [];
+                    for (let i = 0; i < paths.length; i++) {
+                        const img = document.createElement('img');
+                        img.src = paths[i];
+                        img.id = `sprite-${key}-${i}`;
+                        
+                        // Add error handling
+                        img.onerror = function() {
+                            animatedSprites[`${key}-${i}`] = null; // Set to null so we can check later
+                        };
+                        
+                        // Add to DOM to ensure animation works
+                        spriteContainer.appendChild(img);
+                        
+                        // Store reference in animatedSprites for access
+                        animatedSprites[`${key}-${i}`] = img;
+                        
+                        sprites.push(paths[i]); // Store the path, not the img element
+                        console.log(`Loading sprite: ${key}-${i} from ${paths[i]}`);
+                    }
+                    return sprites;
+                }
+                return [];
+            }
+            
+            // Preload player sprites
+            SPRITES.player = preloadSprite('player', SPRITES.player);
+            SPRITES.playerJumping = preloadSprite('playerJumping', SPRITES.playerJumping);
+            SPRITES.playerPurpleHit = preloadSprite('playerPurpleHit', SPRITES.playerPurpleHit);
+            SPRITES.playerFiring = preloadSprite('playerFiring', SPRITES.playerFiring);
+            SPRITES.playerFalling = preloadSprite('playerFalling', SPRITES.playerFalling);
+            SPRITES.playerSprinting = preloadSprite('playerSprinting', SPRITES.playerSprinting);
+            
+            // Preload obstacle sprites
+            SPRITES.obstacleRed = preloadSprite('obstacleRed', SPRITES.obstacleRed);
+            
+            // Handle green obstacles (array of sprites)
+            if (Array.isArray(SPRITES.obstacleGreen)) {
+                SPRITES.obstacleGreen = preloadMultipleSprites('obstacleGreen', SPRITES.obstacleGreen);
+            } else {
+                SPRITES.obstacleGreen = preloadSprite('obstacleGreen', SPRITES.obstacleGreen);
+            }
+            
+            SPRITES.obstacleBlue = preloadSprite('obstacleBlue', SPRITES.obstacleBlue);
+            SPRITES.obstaclePurple = preloadSprite('obstaclePurple', SPRITES.obstaclePurple);
+            
+            // Preload destroy animations
+            SPRITES.obstacleGreenDestroy = preloadSprite('obstacleGreenDestroy', SPRITES.obstacleGreenDestroy);
+            SPRITES.obstaclePurpleDestroy = preloadSprite('obstaclePurpleDestroy', SPRITES.obstaclePurpleDestroy);
+            
+            // Preload terrain sprites
+            SPRITES.platform = preloadSprite('platform', SPRITES.platform);
+            SPRITES.platformExtension = preloadSprite('platformExtension', SPRITES.platformExtension);
+            
+            // Preload multiple sprites for middle ground, background, and distant background
+            SPRITES.platformMiddle = preloadMultipleSprites('platformMiddle', MIDDLE_GROUND_SPRITES);
+            SPRITES.background = preloadMultipleSprites('background', BACKGROUND_SPRITES);
+            SPRITES.distantBackground = preloadMultipleSprites('distantBackground', DISTANT_BACKGROUND_SPRITES);
+            
+            // Preload projectile
+            SPRITES.projectile = preloadSprite('projectile', SPRITES.projectile);
+        }
+        
+        // Replace the loadSprites function with this simplified version
+        function loadSprites() {
+            // This function is now just a placeholder since preloadSprites handles everything
+            console.log("Sprites loading handled by preloadSprites");
+        }
+        
+        // Add this after the DOM elements section
+        const playerSprite = document.getElementById("player-sprite");
+        
+        // Add after the player sprite declaration
+        const obstacleContainer = document.getElementById("obstacle-container");
+        
+        // Update the init function to properly initialize the game
+        function init() {
+            canvas = document.getElementById("game-canvas");
+            ctx = canvas.getContext("2d");
+            
+            // Set canvas dimensions
+            canvas.width = GAME_WIDTH;
+            canvas.height = GAME_HEIGHT;
+            
+            // Disable image smoothing for better performance with pixel art
+            ctx.imageSmoothingEnabled = false;
+            
+            // Load sprites first
+            preloadSprites();
+            
+            // Set up player sprite
+            playerSprite.src = "assets/run.gif";
+            
+            // Force browser to load the image
+            playerSprite.onload = function() {
+                // Player sprite loaded successfully
+            };
+            
+            // Initialize background elements - wait for sprites to load
+            setTimeout(() => {
+                // Initialize background elements
+                backgroundElements = [
+                    createBackgroundElement(0, GAME_WIDTH),
+                    createBackgroundElement(GAME_WIDTH, GAME_WIDTH)
+                ];
+                
+                distantBackgroundElements = [
+                    createBackgroundElement(0, GAME_WIDTH, true),
+                    createBackgroundElement(GAME_WIDTH, GAME_WIDTH, true)
+                ];
+                
+                // Create initial terrain
+            createInitialTerrain();
+            
+            // Position player on ground
+            player.y = platforms[0].y - player.height;
+            }, 100);
+            
+            // Add event listeners
+            document.addEventListener("keydown", handleKeyDown);
+            
+            // Start animation loop
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Game loop
+        function gameLoop(timestamp) {
+            // Clear canvas
+            ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+            
+            if (gameState === "playing") {
+                // Update game state
+                updateGame();
+            }
+            
+            // Draw everything
+            drawGame();
+            
+            // Continue animation loop
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Handle key presses
+        function handleKeyDown(e) {
+            if (e.code === "KeyS") {
+                toggleBackgroundMusic();
+                return;
+            }
+
+                if (e.code === "Space") {
+                if (gameState === "start") {
+                    showInstructionsScreen();
+                } else if (gameState === "instructions") {
+                    startGame();
+                } else if (gameState === "gameOver" && canRestartGame) {
+                    restartGame();
+                }
+            }
+
+            if (gameState === "playing") {
+                if (e.code === "Space" && player.onGround) {
+                    player.velocityY = JUMP_FORCE;
+                    player.jumping = true;
+                    player.onGround = false;
+                    player.color = HAWKEYE_JUMPING_COLOR;
+                    
+                    if (SPRITES.playerJumping) {
+                        playerSprite.src = SPRITES.playerJumping;
+                    }
+                } else if (e.code === "Enter") {
+                    fireProjectile();
+                    
+                    if (SPRITES.playerFiring) {
+                        playerSprite.src = SPRITES.playerFiring;
+                    }
+                }
+            }
+        }
+        
+        // Show instructions screen
+        function showInstructionsScreen() {
+            gameState = "instructions";
+            startScreen.classList.add("hidden");
+            document.getElementById("instructions-screen").classList.remove("hidden");
+        }
+        
+        // Start the game
+        function startGame() {
+            // Try to start audio if it hasn't started yet
+            if (!backgroundMusic) {
+                initAudio();
+                backgroundMusic.play().catch(e => {
+                    console.log("Could not play audio when starting game:", e);
+                });
+            }
+            
+            gameState = "playing";
+            gameActive = true;
+            baseSpeed = DEFAULT_SPEED;
+            distance = 0;
+            lastObstacleHitTime = 0;
+            document.getElementById("instructions-screen").classList.add("hidden");
+            gameOverScreen.classList.add("hidden");
+            playerSprite.classList.remove("hidden");
+            
+            const obstacleSprites = document.querySelectorAll('.obstacle-sprite');
+            obstacleSprites.forEach(sprite => {
+                sprite.classList.remove('hidden-obstacle');
+            });
+        }
+        
+        // Restart the game
+        function restartGame() {
+            // Remove all existing obstacle sprites
+            while (obstacleContainer.firstChild) {
+                obstacleContainer.removeChild(obstacleContainer.firstChild);
+            }
+            
+            // Reset game variables
+            projectiles = [];
+            obstacles = [];
+            greenObstaclesShot = 0;
+            player.color = HAWKEYE_DEFAULT_COLOR;
+            player.purpleHitTimer = 0;
+            player.firingTimer = 0;
+            player.falling = false;
+            createInitialTerrain();
+            player.y = platforms[0].y - player.height;
+            player.velocityY = 0;
+            
+            baseSpeed = DEFAULT_SPEED; // Start at DEFAULT_SPEED
+            lastObstacleHitTime = 0; // Reset the last hit time
+            
+            startGame();
+        }
+        
+        // Show game over screen
+        function gameOver() {
+            gameState = "gameOver";
+            gameActive = false;
+            canRestartGame = false;
+            
+            const distanceScore = Math.floor(distance) * DISTANCE_SCORE_MULTIPLIER;
+            const obstacleScore = greenObstaclesShot * GREEN_OBSTACLE_SCORE;
+            const finalScore = Math.round(distanceScore + obstacleScore);
+            
+            document.getElementById("final-distance").textContent = `Distance: ${Math.floor(distance)}`;
+            document.getElementById("final-kills").textContent = `Kills: ${greenObstaclesShot}`;
+            document.getElementById("final-score").textContent = `Score: ${finalScore}`;
+            
+            gameOverScreen.classList.remove("hidden");
+            
+            // Enable space bar after delay
+            setTimeout(() => {
+                canRestartGame = true;
+            }, GAME_OVER_DELAY);
+        }
+        
+        // Create initial terrain
+        function createInitialTerrain() {
+            platforms = [];
+            
+            // Create base platform
+            platforms.push({
+                x: 0,
+                y: GAME_HEIGHT - PLATFORM_HEIGHT,
+                width: GAME_WIDTH * 2,
+                height: PLATFORM_HEIGHT,
+                level: 0
+            });
+            
+            // Generate more terrain ahead
+            for (let i = 0; i < MAX_TERRAIN_AHEAD; i++) {
+            generateTerrain();
+            }
+            
+            // Add some initial obstacles on the first platform
+            for (let i = 0; i < 3; i++) {
+                const obstacleX = OBSTACLE_INITIAL_DISTANCE + (i * OBSTACLE_INITIAL_SPACING) + Math.random() * 100;
+                
+                // Determine obstacle type based on configured chances
+                const randomValue = Math.random();
+                let obstacleType;
+                
+                if (randomValue < OBSTACLE_PURPLE_CHANCE) {
+                    obstacleType = 0; // Purple
+                } else if (randomValue < OBSTACLE_PURPLE_CHANCE + OBSTACLE_RED_CHANCE) {
+                    obstacleType = 1; // Red
+                } else if (randomValue < OBSTACLE_PURPLE_CHANCE + OBSTACLE_RED_CHANCE + OBSTACLE_GREEN_CHANCE) {
+                    obstacleType = 2; // Green
+                } else {
+                    obstacleType = 3; // Blue
+                }
+                
+                let obstacle;
+                switch (obstacleType) {
+                    case 0: // Purple
+                        obstacle = {
+                            x: obstacleX,
+                            y: platforms[0].y - 30,
+                            width: 32,
+                            height: 32,
+                            type: "purple",
+                            spriteElement: createObstacleSpriteElement("purple")
+                        };
+                        break;
+                    case 1: // Red
+                        obstacle = {
+                            x: obstacleX,
+                            y: platforms[0].y - 30,
+                            width: 32,
+                            height: 32,
+                            type: "red",
+                            spriteElement: createObstacleSpriteElement("red")
+                        };
+                        break;
+                    case 2: // Green
+                        obstacle = {
+                            x: obstacleX,
+                            y: platforms[0].y - 60,
+                            width: 32,
+                            height: 64,
+                            type: "green",
+                            spriteIndex: 0,
+                            isDestroying: false,
+                            destroyTimer: 0,
+                            spriteElement: createObstacleSpriteElement("green", 0)
+                        };
+                        break;
+                    case 3: // Blue pit
+                        const blueWidth = BLUE_OBSTACLE_MIN_WIDTH + Math.random() * (BLUE_OBSTACLE_MAX_WIDTH - BLUE_OBSTACLE_MIN_WIDTH);
+                        const hitboxWidth = blueWidth * BLUE_OBSTACLE_HITBOX_RATIO; // Calculate hitbox width as percentage of obstacle width
+                        const hitboxOffset = (blueWidth - hitboxWidth) / 2; // Center align the hitbox
+                        
+                        obstacle = {
+                            x: obstacleX,
+                            y: platforms[0].y,
+                            width: blueWidth,
+                            height: GAME_HEIGHT - platforms[0].y,
+                            type: "blue",
+                            isPit: true,
+                            hitbox: {
+                                width: hitboxWidth,
+                                offset: hitboxOffset,
+                                y: platforms[0].y
+                            },
+                            spriteElement: createObstacleSpriteElement("blue")
+                        };
+                        break;
+                }
+                
+                obstacles.push(obstacle);
+            }
+        }
+        
+        // Generate terrain
+        function generateTerrain() {
+            const lastPlatform = platforms[platforms.length - 1];
+            let nextX = lastPlatform.x + lastPlatform.width;
+            let nextLevel = lastPlatform.level;
+            
+            // Randomly decide to change level (up or down)
+            const changeLevelChance = Math.random();
+            
+            if (changeLevelChance < 0.3 && nextLevel < 3) {
+                // Go up one level
+                nextLevel += 1;
+            } else if (changeLevelChance < 0.6 && nextLevel > 0) {
+                // Go down (maximum 2 levels down)
+                nextLevel -= Math.min(2, Math.ceil(Math.random() * 2));
+                if (nextLevel < 0) nextLevel = 0;
+            }
+            
+            // Create platform at new level
+            const platformWidth = 200 + Math.random() * 300;
+            const platformY = GAME_HEIGHT - PLATFORM_HEIGHT - (nextLevel * PLATFORM_HEIGHT * 1.5);
+            
+            // Add the main platform
+            platforms.push({
+                x: nextX,
+                y: platformY,
+                width: platformWidth,
+                height: PLATFORM_HEIGHT,
+                level: nextLevel
+            });
+            
+            // Add extension to the bottom if not at ground level
+            if (platformY < GAME_HEIGHT - PLATFORM_HEIGHT) {
+                platforms.push({
+                    x: nextX,
+                    y: platformY + PLATFORM_HEIGHT,
+                    width: platformWidth,
+                    height: GAME_HEIGHT - (platformY + PLATFORM_HEIGHT),
+                    level: nextLevel,
+                    isExtension: true // Flag to identify it as an extension
+                });
+            }
+            
+            // Create gap if not level 0
+            if (nextLevel > 0 && Math.random() < 0.3) {
+                // Calculate max gap based on current speed
+                // As speed increases, we allow larger gaps that are still jumpable
+                const maxGapWidth = MIN_JUMP_DISTANCE + (baseSpeed * 15);
+                const gapWidth = MIN_JUMP_DISTANCE + Math.random() * (maxGapWidth - MIN_JUMP_DISTANCE);
+                
+                // Ensure gap is not too large to jump over
+                const actualGapWidth = Math.min(gapWidth, MAX_JUMP_DISTANCE);
+                
+                nextX += platformWidth + actualGapWidth;
+                
+                // Platform after gap (same level or one down)
+                const afterGapLevel = Math.random() < 0.5 ? nextLevel : Math.max(0, nextLevel - 1);
+                const afterGapY = GAME_HEIGHT - PLATFORM_HEIGHT - (afterGapLevel * PLATFORM_HEIGHT * 1.5);
+                
+                // Add the main platform after gap
+                platforms.push({
+                    x: nextX,
+                    y: afterGapY,
+                    width: 200 + Math.random() * 300,
+                    height: PLATFORM_HEIGHT,
+                    level: afterGapLevel
+                });
+                
+                // Add extension to the bottom if not at ground level
+                if (afterGapY < GAME_HEIGHT - PLATFORM_HEIGHT) {
+                    platforms.push({
+                        x: nextX,
+                        y: afterGapY + PLATFORM_HEIGHT,
+                        width: platforms[platforms.length - 1].width,
+                        height: GAME_HEIGHT - (afterGapY + PLATFORM_HEIGHT),
+                        level: afterGapLevel,
+                        isExtension: true // Flag to identify it as an extension
+                    });
+                }
+            }
+            
+            // Add obstacles with increased probability
+            if (Math.random() < OBSTACLE_FREQUENCY) {
+                addRandomObstacle(platforms[platforms.length - 1]);
+            }
+        }
+        
+        // Add random obstacle to a platform
+        function addRandomObstacle(platform) {
+            // Skip if this is an extension platform
+            if (platform.isExtension) return;
+            
+            // Determine obstacle type based on configured chances
+            const randomValue = Math.random();
+            let obstacleType;
+            
+            if (randomValue < OBSTACLE_PURPLE_CHANCE) {
+                obstacleType = 0; // Purple
+            } else if (randomValue < OBSTACLE_PURPLE_CHANCE + OBSTACLE_RED_CHANCE) {
+                obstacleType = 1; // Red
+            } else if (randomValue < OBSTACLE_PURPLE_CHANCE + OBSTACLE_RED_CHANCE + OBSTACLE_GREEN_CHANCE) {
+                obstacleType = 2; // Green
+            } else {
+                obstacleType = 3; // Blue
+            }
+            
+            // Position obstacle away from edges
+            const obstacleX = platform.x + OBSTACLE_MIN_EDGE_DISTANCE + 
+                              Math.random() * (platform.width - 2 * OBSTACLE_MIN_EDGE_DISTANCE);
+            
+            let obstacle;
+            
+            switch (obstacleType) {
+                case 0: // Purple obstacle (slows player)
+                    obstacle = {
+                        x: obstacleX,
+                        y: platform.y - 30,
+                        width: 30,
+                        height: 30,
+                        type: "purple",
+                        spriteElement: createObstacleSpriteElement("purple")
+                    };
+                    break;
+                case 1: // Red obstacle (game over on collision)
+                    obstacle = {
+                        x: obstacleX,
+                        y: platform.y - 30,
+                        width: 30,
+                        height: 30,
+                        type: "red",
+                        spriteElement: createObstacleSpriteElement("red")
+                    };
+                    break;
+                case 2: // Green obstacle (must shoot)
+                    let spriteIndex = 0;
+                    if (Array.isArray(SPRITES.obstacleGreen) && SPRITES.obstacleGreen.length > 0) {
+                        spriteIndex = Math.floor(Math.random() * SPRITES.obstacleGreen.length);
+                    }
+                    
+                    obstacle = {
+                        x: obstacleX,
+                        y: platform.y - 60,
+                        width: 40,
+                        height: 60,
+                        type: "green",
+                        spriteIndex: spriteIndex,
+                        isDestroying: false,
+                        destroyTimer: 0,
+                        spriteElement: createObstacleSpriteElement("green", spriteIndex)
+                    };
+                    break;
+                case 3: // Blue pit (must jump over)
+                    const blueWidth = BLUE_OBSTACLE_MIN_WIDTH + Math.random() * (BLUE_OBSTACLE_MAX_WIDTH - BLUE_OBSTACLE_MIN_WIDTH);
+                    const hitboxWidth = blueWidth * BLUE_OBSTACLE_HITBOX_RATIO;
+                    const hitboxOffset = (blueWidth - hitboxWidth) / 2;
+                    
+                    obstacle = {
+                        x: obstacleX,
+                        y: platform.y,
+                        width: blueWidth,
+                        height: GAME_HEIGHT - platform.y,
+                        type: "blue",
+                        isPit: true,
+                        hitbox: {
+                            width: hitboxWidth,
+                            offset: hitboxOffset,
+                            y: platform.y
+                        },
+                        spriteElement: createObstacleSpriteElement("blue")
+                    };
+                    break;
+            }
+            
+            // If the game is already playing, make the obstacle visible immediately
+            if (gameState === "playing" && obstacle.spriteElement) {
+                obstacle.spriteElement.classList.remove('hidden-obstacle');
+            }
+            
+            obstacles.push(obstacle);
+        }
+        
+        // Update createObstacleSpriteElement function
+        function createObstacleSpriteElement(type, spriteIndex = 0) {
+            const spriteElement = document.createElement("img");
+            spriteElement.className = "obstacle-sprite hidden-obstacle"; // Add hidden-obstacle class
+            
+            // Set the appropriate sprite source
+            switch (type) {
+                case "purple":
+                    spriteElement.src = SPRITES.obstaclePurple;
+                    break;
+                case "red":
+                    spriteElement.src = SPRITES.obstacleRed;
+                    break;
+                case "green":
+                    if (Array.isArray(SPRITES.obstacleGreen)) {
+                        spriteElement.src = SPRITES.obstacleGreen[spriteIndex];
+                    } else {
+                        spriteElement.src = SPRITES.obstacleGreen;
+                    }
+                    break;
+                case "blue":
+                    if (SPRITES.obstacleBlue) {
+                        spriteElement.src = SPRITES.obstacleBlue;
+                    } else {
+                        // Set a default background color for blue obstacles
+                        spriteElement.style.backgroundColor = "#5C94F9";
+                        spriteElement.style.border = "2px solid #000066";
+                    }
+                    break;
+            }
+            
+            obstacleContainer.appendChild(spriteElement);
+            return spriteElement;
+        }
+        
+        // Fire projectile
+        function fireProjectile() {
+            projectiles.push({
+                x: player.x + player.width,
+                y: player.y + player.height / 2,
+                width: 10,
+                height: 5,
+                speed: PROJECTILE_SPEED + baseSpeed
+            });
+            
+            // Set firing animation timer
+            player.firingTimer = PLAYER_FIRING_DURATION;
+        }
+        
+        // Update game state
+        function updateGame() {
+            // First handle speed increase - only if we're not at max speed
+            if (baseSpeed < MAX_SPEED) {
+                // Only increase speed if it's been at least 2 seconds since last purple obstacle hit
+                const timeSinceLastHit = Date.now() - lastObstacleHitTime;
+                if (timeSinceLastHit > 2000) {
+                    baseSpeed += SPEED_INCREASE_RATE;
+                    // Clamp to max speed
+                    if (baseSpeed > MAX_SPEED) {
+                        baseSpeed = MAX_SPEED;
+                    }
+                }
+            }
+
+            // Update distance using current speed
+            distance += baseSpeed * DISTANCE_INCREASE_RATE;
+            
+            // Update the display with the number of enemies killed
+            distanceCounter.textContent = `Distance: ${Math.floor(distance)} | Kills: ${greenObstaclesShot}`;
+            
+            // Check if player should be in sprinting state based on speed
+            player.sprinting = baseSpeed >= SPEED_SPRINT_THRESHOLD && player.onGround;
+            
+            // Apply gravity to player
+            player.velocityY += GRAVITY;
+            player.y += player.velocityY;
+            
+            // Set falling state if velocity is positive and not on ground
+            if (player.velocityY > 3 && !player.onGround) {
+                player.falling = true;
+            }
+            
+            // Check collision with platforms
+            player.onGround = false;
+            
+            for (let i = 0; i < platforms.length; i++) {
+                const platform = platforms[i];
+                
+                // Skip platform extensions for collision detection
+                if (platform.isExtension) continue;
+                
+                // Check if player is on top of platform
+                if (player.velocityY >= 0 && // Only check when falling down
+                    player.y + player.height > platform.y && 
+                    player.y + player.height < platform.y + 20 && // Increased collision tolerance
+                    player.x + player.width > platform.x && 
+                    player.x < platform.x + platform.width) {
+                    
+                    // Check if there's a blue pit at this position
+                    let onPit = false;
+                    for (let j = 0; j < obstacles.length; j++) {
+                        const obs = obstacles[j];
+                        if (obs.type === "blue" && obs.isPit) {
+                            // Calculate actual hitbox position based on obstacle position and hitbox offset
+                            const hitboxX = obs.x + obs.hitbox.offset;
+                            
+                            if (player.x + player.width > hitboxX &&
+                                player.x < hitboxX + obs.hitbox.width) {
+                                onPit = true;
+                                // Set falling state when player is over a blue pit
+                                player.falling = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // If not on a pit, land on the platform
+                    if (!onPit) {
+                    player.y = platform.y - player.height;
+                    player.velocityY = 0;
+                    player.onGround = true;
+                    player.jumping = false;
+                        player.falling = false; // Reset falling state when landing
+                        
+                        // Reset color to default when landing if not under purple effect
+                        if (player.purpleHitTimer <= 0) {
+                            player.color = HAWKEYE_DEFAULT_COLOR;
+                        }
+                    }
+                }
+            }
+            
+            // Check if player has fallen off the bottom of the screen
+            if (player.y > GAME_HEIGHT) {
+                gameOver();
+                return;
+            }
+            
+            // Check collision with obstacles
+            for (let i = 0; i < obstacles.length; i++) {
+                const obstacle = obstacles[i];
+                
+                // Skip collision check for obstacles that are already being destroyed
+                if (obstacle.isDestroying) {
+                    continue;
+                }
+                
+                // Check player collision with obstacle
+                let collision = false;
+                
+                if (obstacle.type === "blue" && obstacle.isPit) {
+                    // Calculate actual hitbox position based on obstacle position and hitbox offset
+                    const hitboxX = obstacle.x + obstacle.hitbox.offset;
+                    
+                    collision = player.x < hitboxX + obstacle.hitbox.width &&
+                                player.x + player.width > hitboxX &&
+                                player.y + player.height > obstacle.hitbox.y;
+                } else {
+                    // Regular collision detection for other obstacles
+                    collision = player.x < obstacle.x + obstacle.width &&
+                    player.x + player.width > obstacle.x &&
+                    player.y < obstacle.y + obstacle.height &&
+                                player.y + player.height > obstacle.y;
+                }
+                
+                if (collision) {
+                    // Handle different obstacle types
+                    switch (obstacle.type) {
+                        case "purple":
+                            // IMPORTANT: Capture the current speed BEFORE any modifications
+                            const currentSpeed = baseSpeed;
+                            
+                            // Calculate the reduced speed (70% of current speed)
+                            const reducedSpeed = currentSpeed * (1 - PURPLE_OBSTACLE_SPEED_DECREASE);
+                            
+                            // Apply the speed reduction, but ensure we don't go below MIN_SPEED
+                            baseSpeed = Math.max(MIN_SPEED, reducedSpeed);
+                            
+                            // Record the time of this hit to prevent speed increase for a while
+                            lastObstacleHitTime = Date.now();
+                            
+                            // Apply purple hit visual effect only
+                            player.color = HAWKEYE_PURPLE_HIT_COLOR;
+                            player.purpleHitTimer = PLAYER_PURPLE_HIT_DURATION;
+                            
+                            // Start destroy animation for the obstacle
+                            obstacle.isDestroying = true;
+                            obstacle.destroyTimer = PURPLE_DESTROY_DURATION;
+                            obstacle.destroyAnimationStarted = false;
+                            
+                            // Update sprite to destroy animation if not already started
+                            if (!obstacle.destroyAnimationStarted && obstacle.spriteElement && SPRITES.obstaclePurpleDestroy) {
+                                obstacle.spriteElement.src = SPRITES.obstaclePurpleDestroy;
+                                obstacle.destroyAnimationStarted = true;
+                            }
+                            
+                            // Update the display to show the speed change
+                            distanceCounter.textContent = `Distance: ${Math.floor(distance)} | Kills: ${greenObstaclesShot}`;
+                            break;
+                        case "red":
+                        case "green":
+                            // Game over
+                            gameOver();
+                            return;
+                        case "blue":
+                            if (obstacle.isPit) {
+                                // Instead of game over, set falling state
+                                player.falling = true;
+                                // Don't return or end game, let player fall through
+                            }
+                            break;
+                    }
+                }
+            }
+            
+            // Update background positions with parallax effect
+            for (let i = 0; i < backgroundElements.length; i++) {
+                // Update position with precise calculation but round for rendering
+                backgroundElements[i].x -= baseSpeed * BACKGROUND_PARALLAX_RATE;
+                
+                // If background element is off-screen, move it to the right
+                if (backgroundElements[i].x + backgroundElements[i].width < 0) {
+                    // Find the rightmost background element
+                    let rightmostX = -Infinity;
+                    for (let j = 0; j < backgroundElements.length; j++) {
+                        if (j !== i) { // Skip the current element
+                            rightmostX = Math.max(rightmostX, backgroundElements[j].x + backgroundElements[j].width);
+                        }
+                    }
+                    
+                    // Create a new background element at the right edge
+                    backgroundElements[i] = createBackgroundElement(rightmostX, GAME_WIDTH);
+                }
+            }
+            
+            // Update distant background positions with parallax effect
+            for (let i = 0; i < distantBackgroundElements.length; i++) {
+                // Update position with precise calculation but round for rendering
+                distantBackgroundElements[i].x -= baseSpeed * DISTANT_BACKGROUND_PARALLAX_RATE;
+                
+                // If distant background element is off-screen, move it to the right
+                if (distantBackgroundElements[i].x + distantBackgroundElements[i].width < 0) {
+                    // Find the rightmost distant background element
+                    let rightmostX = -Infinity;
+                    for (let j = 0; j < distantBackgroundElements.length; j++) {
+                        if (j !== i) { // Skip the current element
+                            rightmostX = Math.max(rightmostX, distantBackgroundElements[j].x + distantBackgroundElements[j].width);
+                        }
+                    }
+                    
+                    // Create a new distant background element at the right edge
+                    distantBackgroundElements[i] = createBackgroundElement(rightmostX, GAME_WIDTH, true);
+                }
+            }
+            
+            // Scroll terrain, obstacles
+            for (let i = 0; i < platforms.length; i++) {
+                platforms[i].x -= baseSpeed;
+            }
+            
+            // Update obstacles and their destroy timers
+            for (let i = 0; i < obstacles.length; i++) {
+                const obstacle = obstacles[i];
+                obstacle.x -= baseSpeed;
+                
+                // Update sprite element position
+                if (obstacle.spriteElement) {
+                    const canvasRect = canvas.getBoundingClientRect();
+                    const scaleX = canvasRect.width / GAME_WIDTH;
+                    const scaleY = canvasRect.height / GAME_HEIGHT;
+                    
+                    // Make sure the sprite is visible if the game is active
+                    if (gameState === "playing") {
+                        obstacle.spriteElement.classList.remove('hidden-obstacle');
+                    }
+                    
+                    // Use transform instead of left/top for better performance
+                    obstacle.spriteElement.style.transform = `translate(${Math.floor(obstacle.x * scaleX)}px, ${Math.floor(obstacle.y * scaleY)}px)`;
+                    obstacle.spriteElement.style.width = `${Math.ceil(obstacle.width * scaleX)}px`;
+                    obstacle.spriteElement.style.height = `${Math.ceil(obstacle.height * scaleY)}px`;
+                    
+                    // Handle destroy animations
+                    if (obstacle.isDestroying) {
+                        obstacle.destroyTimer -= 16;
+                        
+                        if (obstacle.type === "green" && !obstacle.destroyAnimationStarted) {
+                            obstacle.spriteElement.src = SPRITES.obstacleGreenDestroy;
+                            obstacle.destroyAnimationStarted = true;
+                        }
+                        
+                        if (obstacle.destroyTimer <= 0) {
+                            obstacle.spriteElement.remove();
+                            obstacles.splice(i, 1);
+                            i--;
+                            continue;
+                        }
+                    }
+                }
+            }
+            
+            // Remove off-screen platforms and generate new ones
+            while (platforms.length > 0 && platforms[0].x + platforms[0].width < -200) {
+                platforms.shift();
+                generateTerrain();
+            }
+            
+            // Remove off-screen obstacles
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                if (obstacles[i].x + obstacles[i].width < -100) {
+                    if (obstacles[i].spriteElement) {
+                        obstacles[i].spriteElement.remove();
+                    }
+                    obstacles.splice(i, 1);
+                }
+            }
+            
+            // Update projectiles
+            for (let i = 0; i < projectiles.length; i++) {
+                projectiles[i].x += projectiles[i].speed;
+                
+                // Remove off-screen projectiles
+                if (projectiles[i].x > GAME_WIDTH) {
+                    projectiles.splice(i, 1);
+                    i--;
+                }
+            }
+            
+            // Check if green obstacle is hit by projectile - separate loop to avoid issues
+            for (let i = 0; i < obstacles.length; i++) {
+                const obstacle = obstacles[i];
+                
+                if (obstacle.type === "green" && !obstacle.isDestroying) {
+                    for (let j = 0; j < projectiles.length; j++) {
+                        const projectile = projectiles[j];
+                        
+                        if (projectile.x < obstacle.x + obstacle.width &&
+                            projectile.x + projectile.width > obstacle.x &&
+                            projectile.y < obstacle.y + obstacle.height &&
+                            projectile.y + projectile.height > obstacle.y) {
+                            
+                            // Increment counter for green obstacles shot
+                            greenObstaclesShot++;
+                            
+                            // Start destroy animation
+                            obstacle.isDestroying = true;
+                            obstacle.destroyTimer = GREEN_DESTROY_DURATION;
+                            obstacle.destroyAnimationStarted = false;
+                            
+                            // Remove the projectile
+                            projectiles.splice(j, 1);
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // Update player sprite state timers
+            if (player.purpleHitTimer > 0) {
+                player.purpleHitTimer -= 16; // Approximately 16ms per frame at 60fps
+                if (player.purpleHitTimer <= 0) {
+                    player.purpleHitTimer = 0;
+                    // Reset color when timer expires
+                    if (player.onGround) {
+                        player.color = HAWKEYE_DEFAULT_COLOR;
+                    } else {
+                        player.color = HAWKEYE_JUMPING_COLOR;
+                    }
+                }
+            }
+            
+            if (player.firingTimer > 0) {
+                player.firingTimer -= 16; // Approximately 16ms per frame at 60fps
+                if (player.firingTimer <= 0) {
+                    player.firingTimer = 0;
+                }
+            }
+        }
+        
+        // Draw the game
+        function drawGame() {
+            // Clear the canvas first
+            ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+            
+            // Draw distant background layer first
+            if (distantBackgroundElements && distantBackgroundElements.length > 0) {
+                for (let i = 0; i < distantBackgroundElements.length; i++) {
+                    const bg = distantBackgroundElements[i];
+                    if (bg && bg.sprite) {
+                        // Get the actual image element from animatedSprites
+                        const spriteKey = `distantBackground-${DISTANT_BACKGROUND_SPRITES.indexOf(bg.sprite)}`;
+                        const imgElement = animatedSprites[spriteKey];
+                        
+                        if (imgElement && imgElement.complete) {
+                            // Draw the sprite - use integer coordinates for better performance
+                            ctx.drawImage(imgElement, Math.floor(bg.x), 0, bg.width, GAME_HEIGHT);
+                        } else {
+                            // Fallback to a color
+                            ctx.fillStyle = "#8A7F8D"; // Distant mountains color
+                            ctx.fillRect(Math.floor(bg.x), 0, bg.width, GAME_HEIGHT);
+                        }
+                    } else {
+                        // Fallback to a color
+                        ctx.fillStyle = "#8A7F8D"; // Distant mountains color
+                        ctx.fillRect(Math.floor(bg.x), 0, bg.width, GAME_HEIGHT);
+                    }
+                }
+            } else {
+                // Fallback if no distant background elements
+                ctx.fillStyle = "#8A7F8D";
+            ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+            }
+            
+            // Draw main background layer
+            if (backgroundElements && backgroundElements.length > 0) {
+                for (let i = 0; i < backgroundElements.length; i++) {
+                    const bg = backgroundElements[i];
+                    if (bg && bg.sprite) {
+                        // Get the actual image element from animatedSprites
+                        const spriteKey = `background-${BACKGROUND_SPRITES.indexOf(bg.sprite)}`;
+                        const imgElement = animatedSprites[spriteKey];
+                        
+                        if (imgElement && imgElement.complete) {
+                            // Draw the sprite - use integer coordinates for better performance
+                            ctx.drawImage(imgElement, Math.floor(bg.x), 0, bg.width, GAME_HEIGHT);
+                        } else {
+                            // Fallback to a color
+                            ctx.fillStyle = "#A3878C"; // Background color
+                            ctx.fillRect(Math.floor(bg.x), 0, bg.width, GAME_HEIGHT);
+                        }
+                    } else {
+                        // Fallback to a color
+                        ctx.fillStyle = "#A3878C"; // Background color
+                        ctx.fillRect(Math.floor(bg.x), 0, bg.width, GAME_HEIGHT);
+                    }
+                }
+            } else {
+                // Fallback if no background elements
+                ctx.fillStyle = "#A3878C";
+                ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+            }
+            
+            // Sort platforms by x position to ensure proper drawing order
+            if (platforms && platforms.length > 0) {
+                platforms.sort((a, b) => a.x - b.x);
+                
+                // First draw all extensions
+            for (let i = 0; i < platforms.length; i++) {
+                const platform = platforms[i];
+                    if (platform.isExtension) {
+                        // First draw a solid background color
+                        ctx.fillStyle = "#305D5D"; // New background color for ground
+                        ctx.fillRect(Math.floor(platform.x), Math.floor(platform.y), 
+                                    Math.ceil(platform.width), Math.ceil(platform.height));
+                        
+                        const extensionImg = animatedSprites['platformExtension'];
+                        if (extensionImg && extensionImg.complete) {
+                            // Draw extension sprite tiled horizontally
+                            const tileWidth = extensionImg.width || 64; // Use actual width if available
+                            
+                            // Calculate how many tiles we need
+                            const numTiles = Math.ceil(platform.width / tileWidth);
+                            
+                            for (let j = 0; j < numTiles; j++) {
+                                const tileX = platform.x + (j * tileWidth);
+                                const drawWidth = Math.min(tileWidth, platform.x + platform.width - tileX);
+                                
+                                // Use integer coordinates to prevent seams
+                                ctx.drawImage(extensionImg, 
+                                            0, 0, drawWidth, extensionImg.height,
+                                            Math.floor(tileX), Math.floor(platform.y), 
+                                            drawWidth, platform.height);
+                            }
+                        }
+                    }
+                }
+                
+                // Then draw all main platforms
+            for (let i = 0; i < platforms.length; i++) {
+                const platform = platforms[i];
+                    if (!platform.isExtension) {
+                        // Draw middle ground only for main platforms
+                        if (SPRITES.platformMiddle && SPRITES.platformMiddle.length > 0) {
+                            // If platform doesn't have a middleground sprite assigned yet, assign one
+                            if (!platform.middleGroundSpriteIndex) {
+                                platform.middleGroundSpriteIndex = Math.floor(Math.random() * SPRITES.platformMiddle.length);
+                            }
+                            
+                            const middleGroundSprite = animatedSprites[`platformMiddle-${platform.middleGroundSpriteIndex}`];
+                            
+                            if (middleGroundSprite && middleGroundSprite.complete) {
+                                // Draw the middle ground sprite using tiling at original size (960px)
+                                const tileWidth = 960; // Fixed width for middleground sprites
+                                
+                                // Calculate how many tiles we need
+                                const numTiles = Math.ceil(platform.width / tileWidth);
+                                
+                                for (let j = 0; j < numTiles; j++) {
+                                    const tileX = platform.x + (j * tileWidth);
+                                    // Only draw the portion that fits within the platform width
+                                    const drawWidth = Math.min(tileWidth, platform.x + platform.width - tileX);
+                                    
+                                    // Use integer coordinates to prevent seams
+                                    ctx.drawImage(middleGroundSprite, 
+                                                0, 0, drawWidth, MIDDLE_GROUND_HEIGHT,
+                                                Math.floor(tileX), Math.floor(platform.y - MIDDLE_GROUND_HEIGHT), 
+                                                drawWidth, MIDDLE_GROUND_HEIGHT);
+                                }
+                            } else {
+                                ctx.fillStyle = "#B49CA0";
+                                ctx.fillRect(Math.floor(platform.x), Math.floor(platform.y - MIDDLE_GROUND_HEIGHT), 
+                                            Math.ceil(platform.width), MIDDLE_GROUND_HEIGHT);
+                            }
+                        } else {
+                            ctx.fillStyle = "#B49CA0";
+                            ctx.fillRect(Math.floor(platform.x), Math.floor(platform.y - MIDDLE_GROUND_HEIGHT), 
+                                        Math.ceil(platform.width), MIDDLE_GROUND_HEIGHT);
+                        }
+                        
+                        // First draw a solid background color for the ground
+                        ctx.fillStyle = "#305D5D"; // New background color for ground
+                        ctx.fillRect(Math.floor(platform.x), Math.floor(platform.y), 
+                                    Math.ceil(platform.width), PLATFORM_HEIGHT);
+                        
+                        // Draw main platform
+                        const platformImg = animatedSprites['platform'];
+                        if (platformImg && platformImg.complete) {
+                            // Draw platform sprite tiled horizontally
+                            const tileWidth = platformImg.width || 64; // Use actual width if available
+                            
+                            // Calculate how many tiles we need
+                            const numTiles = Math.ceil(platform.width / tileWidth);
+                            
+                            for (let j = 0; j < numTiles; j++) {
+                                const tileX = platform.x + (j * tileWidth);
+                                const drawWidth = Math.min(tileWidth, platform.x + platform.width - tileX);
+                                
+                                // Use integer coordinates to prevent seams
+                                ctx.drawImage(platformImg, 
+                                            0, 0, drawWidth, PLATFORM_HEIGHT,
+                                            Math.floor(tileX), Math.floor(platform.y), 
+                                            drawWidth, PLATFORM_HEIGHT);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Draw projectiles
+            if (projectiles && projectiles.length > 0) {
+                const projectileImg = animatedSprites['projectile'];
+                if (projectileImg && projectileImg.complete) {
+            for (let i = 0; i < projectiles.length; i++) {
+                const projectile = projectiles[i];
+                        ctx.drawImage(projectileImg, 
+                                    Math.floor(projectile.x), Math.floor(projectile.y), 
+                                    Math.ceil(projectile.width), Math.ceil(projectile.height));
+            }
+                } else {
+            ctx.fillStyle = "#000000";
+                    for (let i = 0; i < projectiles.length; i++) {
+                        const projectile = projectiles[i];
+                        ctx.fillRect(Math.floor(projectile.x), Math.floor(projectile.y), 
+                                    Math.ceil(projectile.width), Math.ceil(projectile.height));
+                    }
+                }
+            }
+            
+            // Update player sprite position
+            if (gameState === "playing") {
+                playerSprite.classList.remove("hidden");
+                
+                // Convert game coordinates to screen coordinates
+                const canvasRect = canvas.getBoundingClientRect();
+                const scaleX = canvasRect.width / GAME_WIDTH;
+                const scaleY = canvasRect.height / GAME_HEIGHT;
+                
+                // Position the player sprite using transform for better performance
+                playerSprite.style.transform = `translate(${Math.floor(player.x * scaleX)}px, ${Math.floor(player.y * scaleY)}px)`;
+                playerSprite.style.width = `${Math.ceil(player.width * scaleX)}px`;
+                playerSprite.style.height = `${Math.ceil(player.height * scaleY)}px`;
+                
+                // Update player sprite based on state
+                let newSrc = "assets/run.gif";
+                
+                // Priority order: Purple Hit > Firing > Falling > Jumping > Sprinting > Default
+                if (player.purpleHitTimer > 0 && SPRITES.playerPurpleHit) {
+                    newSrc = SPRITES.playerPurpleHit;
+                } else if (player.firingTimer > 0 && SPRITES.playerFiring) {
+                    newSrc = SPRITES.playerFiring;
+                } else if (player.falling && SPRITES.playerFalling) {
+                    newSrc = SPRITES.playerFalling;
+                } else if (player.jumping && SPRITES.playerJumping) {
+                    newSrc = SPRITES.playerJumping;
+                } else if (player.sprinting && SPRITES.playerSprinting) {
+                    newSrc = SPRITES.playerSprinting;
+                }
+                
+                // Only update src if it changed to avoid restarting animation
+                if (playerSprite.src.indexOf(newSrc) === -1) {
+                    playerSprite.src = newSrc;
+                }
+            } else {
+                playerSprite.classList.add("hidden");
+            }
+        }
+        
+        // Add a function to get a random sprite from an array
+        function getRandomSprite(spriteArray) {
+            if (!spriteArray || spriteArray.length === 0) return null;
+            const randomIndex = Math.floor(Math.random() * spriteArray.length);
+            return spriteArray[randomIndex];
+        }
+        
+        // Add a function to create background elements
+        function createBackgroundElement(x, width, isDistant = false) {
+            const spriteArray = isDistant ? DISTANT_BACKGROUND_SPRITES : BACKGROUND_SPRITES;
+            let sprite = null;
+            
+            if (spriteArray && spriteArray.length > 0) {
+                const randomIndex = Math.floor(Math.random() * spriteArray.length);
+                sprite = spriteArray[randomIndex];
+            } else {
+                console.warn(`No sprites available for ${isDistant ? 'distant' : 'regular'} background`);
+            }
+            
+            return {
+                x: x,
+                width: width,
+                sprite: sprite
+            };
+        }
+        
+        // Initialize the game when everything is loaded
+        window.onload = function() {
+            // Initialize the game first
+            init();
+            
+            // Initialize audio with user interaction
+            document.addEventListener('click', function initAudioOnFirstClick() {
+                if (!backgroundMusic) {
+                    initAudio();
+                    backgroundMusic.play().catch(e => {
+                        console.log("Audio play failed on first click:", e);
+                    });
+                    document.removeEventListener('click', initAudioOnFirstClick);
+                }
+            }, { once: false });
+            
+            // Also try to initialize on keydown
+            document.addEventListener('keydown', function initAudioOnFirstKey() {
+                if (!backgroundMusic) {
+                    initAudio();
+                    backgroundMusic.play().catch(e => {
+                        console.log("Audio play failed on first keypress:", e);
+                    });
+                    document.removeEventListener('keydown', initAudioOnFirstKey);
+                }
+            }, { once: false });
+        };
+
+        // Initialize audio
+        function initAudio() {
+            try {
+                backgroundMusic = new Audio('music/cyberspace.mp3');
+                backgroundMusic.loop = true;
+                backgroundMusic.volume = BACKGROUND_MUSIC_VOLUME;
+                
+                // Add error handling
+                backgroundMusic.onerror = function() {
+                    console.log("Error loading audio file");
+                };
+            } catch (e) {
+                console.log("Error initializing audio:", e);
+            }
+        }
+        
+        // Toggle background music
+        function toggleBackgroundMusic() {
+            if (!backgroundMusic) {
+                initAudio();
+                backgroundMusic.play().catch(e => {
+                    console.log("Could not play audio:", e);
+                });
+                isMusicPlaying = true;
+                return;
+            }
+            
+            if (isMusicPlaying) {
+                backgroundMusic.pause();
+            } else {
+                backgroundMusic.play().catch(e => {
+                    console.log("Could not play audio:", e);
+                });
+            }
+            isMusicPlaying = !isMusicPlaying;
+        }
+
+        // Ensure the text is visible during gameplay and on the game over screen
+        document.getElementById("music-toggle-text").style.display = "block";
+
+        // JavaScript to handle modal open and close
+        document.getElementById('learn-more').addEventListener('click', function(event) {
+            event.preventDefault(); // Prevent default link behavior
+            const modal = document.getElementById('game-info-modal');
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex'; // Ensure modal is displayed
+        });
+
+        document.getElementById('close-modal').addEventListener('click', function() {
+            const modal = document.getElementById('game-info-modal');
+            modal.classList.add('hidden');
+            modal.style.display = 'none'; // Hide modal
+        });
+    </script>
+</body>
+</html>
